@@ -1,0 +1,50 @@
+#!/usr/bin/env python
+
+import sys
+import email
+import smtplib
+from email.mime.text import MIMEText
+
+lines=[]
+
+msg = """
+*** PLEASE READ ***
+
+Your message has been delivered. There is no further action needed from you at this time.
+
+Note that the email address:
+
+    %s
+
+will be discontinued on 8/31/2013 @ 11:59PM. All future correspondence to this recipient should now be sent to:
+
+    %s
+
+Please, take some time to update your records to reflect the new address.
+
+If you have any questions or concerns, please submit a HelpSU ticket by clicking here: https://remedyweb.stanford.edu/helpsu/2.0/auth/helpsu-form?pcat=FacOps
+
+Best regards,
+LBRE IT Team
+"""
+
+for line in sys.stdin:
+  if line.strip() == '': break
+  lines.append(line[:-1])
+
+headers = email.message_from_string('\n'.join(lines))
+
+sender = headers['from']
+recipient = headers['to']
+subject = headers['subject']
+
+if sender and recipient:
+  msg = MIMEText(msg % (recipient, sys.argv[1]))
+  msg['Subject']="LBRE Auto-Reply message ** PLEASE READ** (%s)" % subject
+  msg['From']="lbre-it-noreply@stanford.edu"
+  msg['To']=sender
+  s = smtplib.SMTP('localhost')
+  s.sendmail(msg['From'], [sender], msg.as_string())
+  s.quit()
+#else:
+#  print 'die !!!!'
